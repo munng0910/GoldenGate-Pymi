@@ -1,3 +1,5 @@
 # GoldenGate-Pymi
-# Author: MunDiHia
-# Organization: BNH
+
+## INTRODUCTION
+### Author: MunDiHia
+### Organization: BNH
