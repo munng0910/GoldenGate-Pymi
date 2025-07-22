@@ -9,7 +9,7 @@ LANG=C
 export LANG
 
 # Trap to cleanup cookie file in case of unexpected exits.
-trap 'cleanup_and_exit' 1 2 3 6 
+trap 'cleanup_and_exit' 1 2 3 6
 
 # Validate that URL argument is provided
 if [ -z "$1" ]; then
@@ -37,7 +37,7 @@ if ! command -v "$WGET" > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check log directory and file
+# Log directory and file
 LOGDIR=./log
 if [ ! -d "$LOGDIR" ]; then
     echo "Log directory $LOGDIR does not exist. Creating it..."
@@ -54,18 +54,18 @@ fi
 LOGFILE="$LOGDIR/wgetlog-$(date +%Y-%m-%d-%H:%M:%S).log"
 
 # Create temporary cookie file
-COOKIE_FILE=$(mktemp -t wget_sh_XXXXXX) 
-if [ $? -ne 0 ] || [ -z "$COOKIE_FILE" ]; then 
-    echo "Error: Failed to create temporary cookie file. See $LOGFILE for details." | tee -a "$LOGFILE" 
-    exit 1 
-fi 
+COOKIE_FILE=$(mktemp -t wget_sh_XXXXXX)
+if [ $? -ne 0 ] || [ -z "$COOKIE_FILE" ]; then
+    echo "Error: Failed to create temporary cookie file. See $LOGFILE for details." | tee -a "$LOGFILE"
+    exit 1
+fi
 
 # Output directory
 OUTPUT_DIR="."
 
 # Extract filename from URL
 SOURCEURL=$(echo "$URL" | awk -F'/' '{print $3}')
-if [[ "$SOURCEURL" == "download.oracle.com"]]; then
+if [[ "$SOURCEURL" == "download.oracle.com" ]]; then
     FILENAME=$(echo "$URL" | awk -F'/' '{print $NF}')
 else
     FILENAME=$(echo "$URL" | sed -n 's/.*fileName=\([^&]*\).*/\1/p')
@@ -78,7 +78,7 @@ fi
 cleanup_and_exit() {
     [ -f "$COOKIE_FILE" ] && rm -f "$COOKIE_FILE"
     echo "Cleaned up temporary cookie file." >> "$LOGFILE"
-    exit 1
+    exit "${1:-1}"
 }
 
 # Authenticate user
@@ -86,8 +86,8 @@ authenticate() {
     echo "Authenticating with Oracle eDelivery..." | tee -a "$LOGFILE"
     $WGET --secure-protocol=auto --save-cookies="$COOKIE_FILE" --keep-session-cookies \
         --http-user "$SSO_USERNAME" --password "$SSO_PASSWORD" "https://edelivery.oracle.com/osdc/cliauth" -a "$LOGFILE"
-    
-    if [ $? -ne 0 ]; then 
+
+    if [ $? -ne 0 ]; then
         echo "Error: Authentication failed. Check $LOGFILE for details." | tee -a "$LOGFILE"
         cleanup_and_exit
     fi
@@ -99,7 +99,7 @@ download_file() {
     echo "Downloading file from: $URL" | tee -a "$LOGFILE"
     $WGET --load-cookies="$COOKIE_FILE" "$URL" -O "$OUTPUT_DIR/$FILENAME" >> "$LOGFILE" 2>&1
 
-    if [ $? -ne 0 ]; then 
+    if [ $? -ne 0 ]; then
         echo "Error: File download failed. Check $LOGFILE for details." | tee -a "$LOGFILE"
         cleanup_and_exit
     fi
@@ -114,4 +114,3 @@ download_file() {
 authenticate
 download_file
 cleanup_and_exit
-
