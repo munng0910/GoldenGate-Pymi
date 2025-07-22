@@ -37,8 +37,20 @@ if ! command -v "$WGET" > /dev/null 2>&1; then
     exit 1
 fi
 
-# Log directory and file
-LOGDIR=.
+# Check log directory and file
+LOGDIR=./log
+if [ ! -d "$LOGDIR" ]; then
+    echo "Log directory $LOGDIR does not exist. Creating it..."
+    mkdir -p "$LOGDIR"
+else
+    echo "Using existing log directory $LOGDIR"
+fi
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to create log directory $LOGDIR. Please check permissions."
+    exit 1
+fi  
+
 LOGFILE=$LOGDIR/wgetlog-$(date +%m-%d-%y-%H:%M).log
 
 # Print wget version info
